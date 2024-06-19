@@ -103,8 +103,15 @@ class BattleField(AECEnv):
     def observation_space(self, agent):
         # Observation space should be defined here:
         size = self.size
-        return spaces.Box(0, 2*size**2 - 1, shape=(2*(2*size**2) + 1,), dtype=int).shape[0]  # obsevation space: mean fields of both the teams and the local (p, s)
+        return spaces.Box(0, 2*size**2 - 1, shape=(2*(2*size**2) + 1,), dtype=float).shape[0]  # obsevation space: mean fields of both the teams and the local (p, s)
 
+    @functools.lru_cache(maxsize=None)
+    def share_observation_space(self, agent):
+        # Observation space should be defined here:
+        size = self.size
+        return spaces.Box(0, 2*size**2 - 1, shape=(2*(2*size**2),), dtype=float).shape[0]  # obsevation space: mean fields of both the teams and the local (p, s)
+
+    
     @functools.lru_cache(maxsize=None)
     def action_space(self, agent):
         # Action space should be defined here.
