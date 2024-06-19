@@ -17,7 +17,7 @@ def make_train_env(all_args):
     def get_env_fn(rank):
         def init_env():
             if all_args.env_name == "battlefield":
-                env = BattleField(all_args)
+                env = BattleField()
             else:
                 print("Can not support the " +
                       all_args.env_name + "environment.")
