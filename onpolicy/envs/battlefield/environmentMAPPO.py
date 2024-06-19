@@ -27,8 +27,6 @@ def BattleFieldEnv(render_mode=None):
     # Strongly recommended
     #env = wrappers.OrderEnforcingWrapper(env)
 
-    print('environment set successfully!')
-
     return env
 
 
