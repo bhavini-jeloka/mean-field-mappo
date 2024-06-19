@@ -103,7 +103,6 @@ def main(args):
                          name=str(all_args.algorithm_name) + "_" +
                          str(all_args.experiment_name) +
                          "_seed" + str(all_args.seed),
-                         group=all_args.scenario_name,
                          dir=str(run_dir),
                          job_type="training",
                          reinit=True)
