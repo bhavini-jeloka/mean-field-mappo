@@ -108,15 +108,15 @@ class BattleFieldRunner(Runner):
         rnn_states = np.array(np.split(_t2n(rnn_states), self.n_rollout_threads))
         rnn_states_critic = np.array(np.split(_t2n(rnn_states_critic), self.n_rollout_threads))
         # rearrange action
-        if self.envs.actions[0].__class__.__name__ == 'MultiDiscrete':
-            for i in range(self.envs.action_spaces[0].shape):
-                uc_actions_env = np.eye(self.envs.action_spaces[0].high[i] + 1)[actions[:, :, i]]
+        if self.envs.action_space[0].__class__.__name__ == 'MultiDiscrete':
+            for i in range(self.envs.action_space[0].shape):
+                uc_actions_env = np.eye(self.envs.action_space[0].high[i] + 1)[actions[:, :, i]]
                 if i == 0:
                     actions_env = uc_actions_env
                 else:
                     actions_env = np.concatenate((actions_env, uc_actions_env), axis=2)
-        elif self.envs.action_spaces[0].__class__.__name__ == 'Discrete':
-            actions_env = np.squeeze(np.eye(self.envs.action_spaces[0].n)[actions], 2)
+        elif self.envs.action_space[0].__class__.__name__ == 'Discrete':
+            actions_env = np.squeeze(np.eye(self.envs.action_space[0].n)[actions], 2)
         else:
             raise NotImplementedError
 
@@ -212,15 +212,15 @@ class BattleFieldRunner(Runner):
                 actions = np.array(np.split(_t2n(action), self.n_rollout_threads))
                 rnn_states = np.array(np.split(_t2n(rnn_states), self.n_rollout_threads))
 
-                if envs.action_spaces[0].__class__.__name__ == 'MultiDiscrete':
-                    for i in range(envs.action_spaces[0].shape):
-                        uc_actions_env = np.eye(envs.action_spaces[0].high[i]+1)[actions[:, :, i]]
+                if envs.action_space[0].__class__.__name__ == 'MultiDiscrete':
+                    for i in range(envs.action_space[0].shape):
+                        uc_actions_env = np.eye(envs.action_space[0].high[i]+1)[actions[:, :, i]]
                         if i == 0:
                             actions_env = uc_actions_env
                         else:
                             actions_env = np.concatenate((actions_env, uc_actions_env), axis=2)
-                elif envs.action_spaces[0].__class__.__name__ == 'Discrete':
-                    actions_env = np.squeeze(np.eye(envs.action_spaces[0].n)[actions], 2)
+                elif envs.action_space[0].__class__.__name__ == 'Discrete':
+                    actions_env = np.squeeze(np.eye(envs.action_space[0].n)[actions], 2)
                 else:
                     raise NotImplementedError
 

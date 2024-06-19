@@ -70,17 +70,17 @@ class Runner(object):
             from onpolicy.algorithms.r_mappo.r_mappo import R_MAPPO as TrainAlgo
             from onpolicy.algorithms.r_mappo.algorithm.rMAPPOPolicy import R_MAPPOPolicy as Policy
 
-        share_observation_space = self.envs.share_observation_space[0] if self.use_centralized_V else self.envs.observation_spaces[0]
+        share_observation_space = self.envs.share_observation_space[0] if self.use_centralized_V else self.envs.observation_space[0]
 
-        print("obs_space: ", self.envs.observation_spaces)
+        print("obs_space: ", self.envs.observation_space)
         print("share_obs_space: ", self.envs.share_observation_space)
-        print("act_space: ", self.envs.action_spaces)
+        print("act_space: ", self.envs.action_space)
         
         # policy network
         if self.algorithm_name == "mat" or self.algorithm_name == "mat_dec":
-            self.policy = Policy(self.all_args, self.envs.observation_spaces[0], share_observation_space, self.envs.action_spaces[0], self.num_agents, device = self.device)
+            self.policy = Policy(self.all_args, self.envs.observation_space[0], share_observation_space, self.envs.action_space[0], self.num_agents, device = self.device)
         else:
-            self.policy = Policy(self.all_args, self.envs.observation_spaces[0], share_observation_space, self.envs.action_spaces[0], device = self.device)
+            self.policy = Policy(self.all_args, self.envs.observation_space[0], share_observation_space, self.envs.action_space[0], device = self.device)
 
         if self.model_dir is not None:
             self.restore(self.model_dir)
@@ -94,9 +94,9 @@ class Runner(object):
         # buffer
         self.buffer = SharedReplayBuffer(self.all_args,
                                         self.num_agents,
-                                        self.envs.observation_spaces[0],
+                                        self.envs.observation_space[0],
                                         share_observation_space,
-                                        self.envs.action_spaces[0])
+                                        self.envs.action_space[0])
 
     def run(self):
         """Collect training data, perform training updates, and evaluate policy."""

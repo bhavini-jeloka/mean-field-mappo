@@ -89,18 +89,18 @@ class BattleField(AECEnv):
         self.border_indices = self.find_border_locations()
 
         # configure spaces
-        self.action_spaces = []
-        self.observation_spaces = []
+        self.action_space = []
+        self.observation_space = []
         self.share_observation_space = []
         share_obs_dim = 0
 
         for agent in self.possible_agents_blue:
-            self.action_spaces.append(Discrete(5))
+            self.action_space.append(Discrete(5))
             
             # observation space
             obs_dim = 2*size**2
             share_obs_dim += obs_dim
-            self.observation_spaces.append(spaces.Box(0, obs_dim - 1, shape=(obs_dim + 1,), dtype=np.float32))  # [-inf,inf]
+            self.observation_space.append(spaces.Box(0, obs_dim - 1, shape=(obs_dim + 1,), dtype=np.float32))  # [-inf,inf]
         
         self.share_observation_space = [spaces.Box(
             low=-np.inf, high=+np.inf, shape=(share_obs_dim,), dtype=np.float32) for _ in range(self.numAgents)]
