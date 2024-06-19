@@ -106,7 +106,6 @@ def main(args):
                          job_type="training",
                          reinit=True)
     else:
-        print('skip wandb')
         if not run_dir.exists():
             curr_run = 'run1'
         else:
@@ -119,9 +118,6 @@ def main(args):
         if not run_dir.exists():
             os.makedirs(str(run_dir))
 
-    print('before setproctitle')
-    assert(1==0)
-
     setproctitle.setproctitle(str(all_args.algorithm_name) + "-" + \
         str(all_args.env_name) + "-" + str(all_args.experiment_name) + "@" + str(all_args.user_name))
 
@@ -131,6 +127,8 @@ def main(args):
     np.random.seed(all_args.seed)
 
     # env init
+    print('init environment')
+    assert(1==0)
     envs = make_train_env(all_args)
     eval_envs = make_eval_env(all_args) if all_args.use_eval else None
     num_agents = all_args.num_agents
