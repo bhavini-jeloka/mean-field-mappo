@@ -280,6 +280,8 @@ class BattleField(Env):
         self._agent_selector = agent_selector(self.agents)
         self.agent_selection = self._agent_selector.next()
 
+        return self.observations
+
 
     def get_new_state(self, state, action, agent, oracle, size, mf):
 
