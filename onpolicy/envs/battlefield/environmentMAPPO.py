@@ -21,7 +21,7 @@ def BattleFieldEnv(render_mode=None):
     env = BattleField(render_mode=internal_render_mode)
 
     # this wrapper helps error handling for discrete action spaces
-    env = wrappers.AssertOutOfBoundsWrapper(env)
+    #env = wrappers.AssertOutOfBoundsWrapper(env)
 
     # Provides a wide vareity of helpful user errors
     # Strongly recommended
