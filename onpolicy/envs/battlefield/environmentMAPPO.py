@@ -54,6 +54,7 @@ class BattleField(Env):
         self.size = size  # The size of the square grid
         self.window_size = 512  # The size of the PyGame window
         self.numAgents = 20 #8
+        self.num_agents = 20
         self.numActions = 5
         self.target = np.array([[2, 2], [6, 6]])
 
