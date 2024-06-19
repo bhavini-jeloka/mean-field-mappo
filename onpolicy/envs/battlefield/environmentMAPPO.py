@@ -81,41 +81,29 @@ class BattleField(AECEnv):
         assert render_mode is None or render_mode in self.metadata["render_modes"]
         self.render_mode = render_mode
 
-        """
-        If human-rendering is used, `self.window` will be a reference
-        to the window that we draw to. `self.clock` will be a clock that is used
-        to ensure that the environment is rendered at the correct framerate in
-        human-mode. They will remain `None` until human-mode is used for the
-        first time.
-        """
-
         self.window = None
         self.clock = None
 
-        #TODO: fix oracle initialization
         self.mf_oracle = mfOracle(2 * self.size ** 2, self.numActions, 2 * self.size ** 2, self.numActions, self.numAgents,
                                   self.numAgents, self.target)
         self.border_indices = self.find_border_locations()
 
-    
-    # lru_cache allows observation and action spaces to be memoized, reducing clock cycles required to get each agent's space.
-    @functools.lru_cache(maxsize=None)
-    def observation_space(self, agent):
-        # Observation space should be defined here:
-        size = self.size
-        return spaces.Box(0, 2*size**2 - 1, shape=(2*(2*size**2) + 1,), dtype=float).shape[0]  # obsevation space: mean fields of both the teams and the local (p, s)
+        # configure spaces
+        self.action_space = []
+        self.observation_space = []
+        self.share_observation_space = []
+        share_obs_dim = 0
 
-    @functools.lru_cache(maxsize=None)
-    def share_observation_space(self, agent):
-        # Observation space should be defined here:
-        size = self.size
-        return spaces.Box(0, 2*size**2 - 1, shape=(2*(2*size**2),), dtype=float).shape[0]  # obsevation space: mean fields of both the teams and the local (p, s)
-
-    
-    @functools.lru_cache(maxsize=None)
-    def action_space(self, agent):
-        # Action space should be defined here.
-        return Discrete(5)
+        for agent in self.possible_agents_blue:
+            self.action_space.append(Discrete(5))
+            
+            # observation space
+            obs_dim = 2*size**2
+            share_obs_dim += obs_dim
+            self.observation_space.append(spaces.Box(0, obs_dim - 1, shape=(obs_dim + 1,), dtype=np.float32))  # [-inf,inf]
+        
+        self.share_observation_space = [spaces.Box(
+            low=-np.inf, high=+np.inf, shape=(share_obs_dim,), dtype=np.float32) for _ in range(self.n)]
 
     def render(self):
         # Renders the environment. In human mode, it opens up a graphical window that a human can see and understand.
