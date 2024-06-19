@@ -30,6 +30,7 @@ def make_train_env(all_args):
     else:
         print('test entry')
         return SubprocVecEnv([get_env_fn(i) for i in range(all_args.n_rollout_threads)])
+        print('test done')
 
 
 def make_eval_env(all_args):
