@@ -15,10 +15,10 @@ from .mfOracleNew import mfOracle
 
 size = 8
 target = np.array([[2, 2], [6, 6]])
-def env(render_mode=None):
+def BattleFieldEnv(render_mode=None):
 
     internal_render_mode = render_mode if render_mode != "ansi" else "human"
-    env = raw_env(render_mode=internal_render_mode)
+    env = BattleField(render_mode=internal_render_mode)
 
     # this wrapper helps error handling for discrete action spaces
     env = wrappers.AssertOutOfBoundsWrapper(env)
@@ -235,6 +235,12 @@ class BattleField(AECEnv):
             border_indices.append(self.mf_oracle.pos2index(border) + self.size ** 2) 
 
         return border_indices
+    
+    def seed(self, seed=None):
+        if seed is None:
+            random.seed(1)
+        else:
+            random.seed(seed)
 
     def reset(self, seed=None, options=None):
         """

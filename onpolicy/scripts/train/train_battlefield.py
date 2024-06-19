@@ -8,7 +8,7 @@ import numpy as np
 from pathlib import Path
 import torch
 from onpolicy.config import get_config
-from onpolicy.envs.battlefield.environmentMAPPO import BattleField
+from onpolicy.envs.battlefield.environmentMAPPO import BattleFieldEnv, BattleField
 from onpolicy.envs.env_wrappers import SubprocVecEnv, DummyVecEnv
 
 """Train script for battlefield."""
@@ -17,7 +17,7 @@ def make_train_env(all_args):
     def get_env_fn(rank):
         def init_env():
             if all_args.env_name == "battlefield":
-                env = BattleField()
+                env = BattleFieldEnv()
             else:
                 print("Can not support the " +
                       all_args.env_name + "environment.")
