@@ -128,7 +128,6 @@ def main(args):
 
     # env init
     print('init environment')
-    assert(1==0)
     envs = make_train_env(all_args)
     eval_envs = make_eval_env(all_args) if all_args.use_eval else None
     num_agents = all_args.num_agents
@@ -143,6 +142,8 @@ def main(args):
     }
 
     # run experiments
+    print('running experiments')
+    assert(1==0)
     if all_args.share_policy:
         from onpolicy.runner.shared.battlefield_runner import BattleFieldRunner as Runner
     else:
