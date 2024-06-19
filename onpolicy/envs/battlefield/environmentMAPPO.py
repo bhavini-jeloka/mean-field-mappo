@@ -11,7 +11,7 @@ from pettingzoo.utils import agent_selector, wrappers
 import pygame
 import random
 import copy
-from mfOracleNew import mfOracle
+from .mfOracleNew import mfOracle
 
 size = 8
 target = np.array([[2, 2], [6, 6]])
