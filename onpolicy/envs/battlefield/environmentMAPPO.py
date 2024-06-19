@@ -2,7 +2,7 @@ import functools
 
 import gymnasium
 import numpy as np
-from gymnasium import spaces
+from gymnasium import spaces, Env
 from gymnasium.spaces import Tuple, Box, Discrete, MultiDiscrete
 
 from pettingzoo import AECEnv
@@ -30,7 +30,7 @@ def BattleFieldEnv(render_mode=None):
     return env
 
 
-class BattleField(AECEnv):
+class BattleField(Env):
     """
     The metadata holds environment constants. From gymnasium, we inherit the "render_modes",
     metadata which specifies which modes can be put into the render() method.
