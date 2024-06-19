@@ -238,7 +238,7 @@ class BattleField(AECEnv):
 
         return border_indices
     
-    def seed(self, seed=None):
+    def set_seed(self, seed=None):
         if seed is None:
             self.seed_value = 1
         else:
