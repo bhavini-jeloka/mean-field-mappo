@@ -130,6 +130,7 @@ def main(args):
 
     # env init
     envs = make_train_env(all_args)
+    print('finish making environments')
     eval_envs = make_eval_env(all_args) if all_args.use_eval else None
     num_agents = all_args.num_agents
 
