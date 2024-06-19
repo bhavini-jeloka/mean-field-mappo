@@ -50,6 +50,8 @@ def make_eval_env(all_args):
 
 
 def parse_args(args, parser):
+    parser.add_argument('--num_agents', type=int,
+                        default=20, help="number of players")
     all_args = parser.parse_known_args(args)[0]
     return all_args
 
