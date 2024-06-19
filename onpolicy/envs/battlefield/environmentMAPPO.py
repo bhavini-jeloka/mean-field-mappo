@@ -103,7 +103,7 @@ class BattleField(AECEnv):
             self.observation_space.append(spaces.Box(0, obs_dim - 1, shape=(obs_dim + 1,), dtype=np.float32))  # [-inf,inf]
         
         self.share_observation_space = [spaces.Box(
-            low=-np.inf, high=+np.inf, shape=(share_obs_dim,), dtype=np.float32) for _ in range(self.num_agents)]
+            low=-np.inf, high=+np.inf, shape=(share_obs_dim,), dtype=np.float32) for _ in range(self.numAgents)]
 
     def render(self):
         # Renders the environment. In human mode, it opens up a graphical window that a human can see and understand.
