@@ -298,7 +298,7 @@ def get_config():
     parser.add_argument("--n_embd", type=int, default=64)
     parser.add_argument("--n_head", type=int, default=1)
     parser.add_argument("--dec_actor", action='store_true', default=False)
-    parser.add_argument("--share_actor", action='store_true', default=False)
+    parser.add_argument("--share_actor", action='store_true', default=True)
 
     # add for online multi-task
     parser.add_argument("--train_maps", type=str, nargs='+', default=None)
