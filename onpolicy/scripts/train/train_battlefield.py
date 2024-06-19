@@ -106,6 +106,7 @@ def main(args):
                          job_type="training",
                          reinit=True)
     else:
+        print('skip wandb')
         if not run_dir.exists():
             curr_run = 'run1'
         else:
@@ -117,6 +118,9 @@ def main(args):
         run_dir = run_dir / curr_run
         if not run_dir.exists():
             os.makedirs(str(run_dir))
+
+    print('before setproctitle')
+    assert(1==0)
 
     setproctitle.setproctitle(str(all_args.algorithm_name) + "-" + \
         str(all_args.env_name) + "-" + str(all_args.experiment_name) + "@" + str(all_args.user_name))
