@@ -27,6 +27,8 @@ def BattleFieldEnv(render_mode=None):
     # Strongly recommended
     #env = wrappers.OrderEnforcingWrapper(env)
 
+    print('environment set successfully!')
+
     return env
 
 
@@ -238,9 +240,9 @@ class BattleField(AECEnv):
     
     def seed(self, seed=None):
         if seed is None:
-            random.seed(1)
+            self.seed_value = 1
         else:
-            random.seed(seed)
+            self.seed_value = seed
 
     def reset(self, seed=None, options=None):
         """
@@ -256,6 +258,8 @@ class BattleField(AECEnv):
         can be called without issues.
         Here it sets up the state dictionary which is used by step() and the observations dictionary which is used by step() and observe()
         """
+
+        random.seed(self.seed_value)
 
         self.agents_blue = self.possible_agents_blue[:]
         self.rewards_blue = {agent: 0 for agent in self.agents_blue}
