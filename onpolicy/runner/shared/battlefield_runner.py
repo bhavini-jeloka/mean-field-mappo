@@ -90,6 +90,7 @@ class BattleFieldRunner(Runner):
             share_obs = obs
 
         self.buffer.share_obs[0] = share_obs.copy()
+        print(obs)
         self.buffer.obs[0] = obs.copy()
 
     @torch.no_grad()
