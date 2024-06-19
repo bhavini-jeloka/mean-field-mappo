@@ -28,9 +28,7 @@ def make_train_env(all_args):
     if all_args.n_rollout_threads == 1:
         return DummyVecEnv([get_env_fn(0)])
     else:
-        print('test entry')
         return SubprocVecEnv([get_env_fn(i) for i in range(all_args.n_rollout_threads)])
-        print('test done')
 
 
 def make_eval_env(all_args):
@@ -129,7 +127,6 @@ def main(args):
     np.random.seed(all_args.seed)
 
     # env init
-    print('init environment')
     envs = make_train_env(all_args)
     eval_envs = make_eval_env(all_args) if all_args.use_eval else None
     num_agents = all_args.num_agents
@@ -144,8 +141,6 @@ def main(args):
     }
 
     # run experiments
-    print('running experiments')
-    assert(1==0)
     if all_args.share_policy:
         from onpolicy.runner.shared.battlefield_runner import BattleFieldRunner as Runner
     else:
