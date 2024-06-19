@@ -100,7 +100,7 @@ class BattleField(Env):
             
             # observation space
             obs_dim = 2*size**2
-            share_obs_dim += obs_dim
+            share_obs_dim += obs_dim + 1
             self.observation_space.append(spaces.Box(0, obs_dim - 1, shape=(obs_dim + 1,), dtype=np.float32))  # [-inf,inf]
         
         self.share_observation_space = [spaces.Box(
