@@ -56,7 +56,7 @@ class BattleField(Env):
         self.numAgents = 20 #8
         self.num_agents = 20
         self.numActions = 5
-        self.target = np.array([[2, 2], [6, 6]])
+        self.target = np.array([[0, 0], [1, 1], [2, 2], [3, 3], [4, 4], [5, 5], [6, 6], [7, 7]])
 
         self.possible_agents_blue = ["blue1", "blue2", "blue3", "blue4", "blue5", "blue6", "blue7", "blue8", "blue9", "blue10", 
                                      "blue11", "blue12", "blue13", "blue14", "blue15", "blue16", "blue17", "blue18", "blue19", "blue20"]
