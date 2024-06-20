@@ -78,22 +78,26 @@ class BattleFieldRunner(Runner):
             if episode % self.eval_interval == 0 and self.use_eval:
                 self.eval(total_num_steps)
 
+    # Function to concatenate the values of a dictionary into a single array
+    def concatenate_dict_values(self, d):
+        values = list(d.values())
+        concatenated_array = np.concatenate(values, axis=None)
+        return concatenated_array
+
     def warmup(self):
         # reset env
         obs = self.envs.reset()
-
-        print(obs.shape)
-        print(obs[0])
+        concatenated_obs = [self.concatenate_dict_values(d) for d in obs]
 
         # replay buffer
         if self.use_centralized_V:
-            share_obs = obs.reshape(self.n_rollout_threads, -1)
+            share_obs = concatenated_obs.reshape(self.n_rollout_threads, -1)
             share_obs = np.expand_dims(share_obs, 1).repeat(self.num_agents, axis=1)
         else:
-            share_obs = obs
+            share_obs = concatenated_obs
 
         self.buffer.share_obs[0] = share_obs.copy()
-        self.buffer.obs[0] = obs.copy()
+        self.buffer.obs[0] = concatenated_obs.copy()
 
     @torch.no_grad()
     def collect(self, step):
