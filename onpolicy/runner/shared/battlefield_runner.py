@@ -84,12 +84,12 @@ class BattleFieldRunner(Runner):
 
         # replay buffer
         if self.use_centralized_V:
+            print('test 1')
             share_obs = obs.reshape(self.n_rollout_threads, -1)
             share_obs = np.expand_dims(share_obs, 1).repeat(self.num_agents, axis=1)
         else:
             share_obs = obs
 
-        print(share_obs)
         self.buffer.share_obs[0] = share_obs.copy()
         self.buffer.obs[0] = obs.copy()
 
