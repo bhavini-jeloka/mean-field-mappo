@@ -4,6 +4,7 @@ import torch
 from onpolicy.runner.shared.base_runner import Runner
 import wandb
 import imageio
+import matplotlib.pyplot as plt
 
 def _t2n(x):
     return x.detach().cpu().numpy()
@@ -18,6 +19,7 @@ class BattleFieldRunner(Runner):
 
         start = time.time()
         episodes = int(self.num_env_steps) // self.episode_length // self.n_rollout_threads
+        avg_reward_to_plot = []
 
         for episode in range(episodes):
             if self.use_linear_lr_decay:
@@ -70,12 +72,23 @@ class BattleFieldRunner(Runner):
 
                 train_infos["average_episode_rewards"] = np.mean(self.buffer.rewards) * self.episode_length
                 print("average episode rewards is {}".format(train_infos["average_episode_rewards"]))
+                avg_reward_to_plot.append(train_infos["average_episode_rewards"])
                 self.log_train(train_infos, total_num_steps)
                 #self.log_env(obs, total_num_steps)
 
             # eval
             if episode % self.eval_interval == 0 and self.use_eval:
                 self.eval(total_num_steps)
+        
+        # training finishes, plot reward
+        fig, ax = plt.subplots()
+        
+        ax.plot(self.log_interval*np.arange(len(avg_reward_to_plot)),avg_reward_to_plot, c='black', label='Training')
+        ax.legend()
+        ax.set_xlabel('episode')
+        ax.set_ylabel('reward')
+        ax.set_title('Training MAPPO single team for 8x8 grid')
+        plt.savefig(self.save_dir)
 
     # Function to concatenate the values of a dictionary into a single array
     def concatenate_dict_values(self, d):
