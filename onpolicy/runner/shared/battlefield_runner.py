@@ -31,6 +31,9 @@ class BattleFieldRunner(Runner):
                 actions_env = np.argmax(actions_env, axis=-1)
                 actions_env = np.expand_dims(actions_env, axis=-1)
                 print('about to step')
+                print(actions_env.shape)
+                print(actions_env)
+                assert(1==0)
                 obs, rewards, dones, infos = self.envs.step(actions_env)
                 print('finish step')
 
