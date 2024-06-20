@@ -80,21 +80,23 @@ class BattleFieldRunner(Runner):
 
     # Function to concatenate the values of a dictionary into a single array
     def concatenate_dict_values(self, d):
-        values = list(d.values())
+        values = np.array(list(d.values()))
         concatenated_array = np.concatenate(values, axis=None)
         return concatenated_array
 
     def warmup(self):
         # reset env
         obs = self.envs.reset()
+        arr_obs = np.array([np.array(list(d.values())) for d in obs])
         concatenated_obs = np.array([self.concatenate_dict_values(d) for d in obs])
+        
 
         # replay buffer
         if self.use_centralized_V:
             share_obs = concatenated_obs.reshape(self.n_rollout_threads, -1)
             share_obs = np.expand_dims(share_obs, 1).repeat(self.num_agents, axis=1)
         else:
-            share_obs = concatenated_obs
+            share_obs = arr_obs
 
         self.buffer.share_obs[0] = share_obs.copy()
         self.buffer.obs[0] = concatenated_obs.copy()
