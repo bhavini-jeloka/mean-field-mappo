@@ -328,7 +328,6 @@ class BattleField(Env):
 
         pos_list, status_list = self.mf_oracle.index2status(self.local_states_arr)
 
-        dones = status_list.astype(bool)
-        print(status_list, dones)
+        dones = np.logical_not(status_list.astype(bool))
 
         return self.observations, self.rewards, dones, self.infos
