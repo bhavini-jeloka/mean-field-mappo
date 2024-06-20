@@ -15,6 +15,7 @@ class BattleFieldRunner(Runner):
         super(BattleFieldRunner, self).__init__(config)
 
     def run(self):
+        print(self.save_dir)
         self.warmup()   
 
         start = time.time()
