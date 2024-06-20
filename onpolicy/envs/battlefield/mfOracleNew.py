@@ -24,7 +24,7 @@ class mfOracle:
 
         self.grid = np.arange(self.size*self.size).reshape(self.size, self.size)
 
-        self.alpha_x, self.alpha_y = 20, 20
+        self.alpha_x, self.alpha_y = 20, 5
         self.beta_x, self.beta_y = 0, 0
 
         self.target_indices = []
