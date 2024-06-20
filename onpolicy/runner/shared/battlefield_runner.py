@@ -30,13 +30,15 @@ class BattleFieldRunner(Runner):
                 # Obser reward and next obs
                 actions_env = np.argmax(actions_env, axis=-1)
                 obs, rewards, dones, infos = self.envs.step(actions_env)
-                print('Step', step)
+                blue_states = np.array([values[-1] for values in obs[0].values()])
+                print('step', step)
+                print('blue states', blue_states)
 
                 data = obs, rewards, dones, infos, values, actions, action_log_probs, rnn_states, rnn_states_critic
 
                 # insert data into buffer
                 self.insert(data)
-            assert(episode<3)
+            assert(1==0)
             # compute return and update network
             self.compute()
             train_infos = self.train()
