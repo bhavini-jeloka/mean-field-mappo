@@ -307,6 +307,7 @@ class BattleField(Env):
         And any internal state used by observe() or render()
         """
 
+        print(jointAction)
         mf = self.mf_oracle.getEmpiricalMeanField(self.local_states_all)
 
         # new state

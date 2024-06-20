@@ -29,7 +29,6 @@ class BattleFieldRunner(Runner):
                     
                 # Obser reward and next obs
                 actions_env = np.argmax(actions_env, axis=-1)
-                actions_env = np.expand_dims(actions_env, axis=-1)
                 print('about to step')
                 obs, rewards, dones, infos = self.envs.step(actions_env)
                 print('finish step')
