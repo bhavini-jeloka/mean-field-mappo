@@ -28,7 +28,7 @@ class BattleFieldRunner(Runner):
                 values, actions, action_log_probs, rnn_states, rnn_states_critic, actions_env = self.collect(step)
                     
                 # Obser reward and next obs
-                print(actions_env)
+                print(actions_env.shape)
                 print('about to step')
                 obs, rewards, dones, infos = self.envs.step(actions_env)
                 print('finish step')
