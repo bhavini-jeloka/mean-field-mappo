@@ -87,7 +87,7 @@ class BattleFieldRunner(Runner):
     def warmup(self):
         # reset env
         obs = self.envs.reset()
-        concatenated_obs = [self.concatenate_dict_values(d) for d in obs]
+        concatenated_obs = np.array([self.concatenate_dict_values(d) for d in obs])
 
         # replay buffer
         if self.use_centralized_V:
