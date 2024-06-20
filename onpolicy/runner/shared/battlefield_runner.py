@@ -82,11 +82,13 @@ class BattleFieldRunner(Runner):
         # reset env
         obs = self.envs.reset()
 
+        print(obs.shape)
+        print(obs[0])
+
         # replay buffer
         if self.use_centralized_V:
             share_obs = obs.reshape(self.n_rollout_threads, -1)
             share_obs = np.expand_dims(share_obs, 1).repeat(self.num_agents, axis=1)
-            print(share_obs.shape)
         else:
             share_obs = obs
 
