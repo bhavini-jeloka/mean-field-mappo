@@ -329,6 +329,6 @@ class BattleField(Env):
         pos_list, status_list = self.mf_oracle.index2status(self.local_states_arr)
 
         dones = status_list.astype(bool)
-        print(dones)
+        print(status_list, dones)
 
         return self.observations, self.rewards, dones, self.infos
