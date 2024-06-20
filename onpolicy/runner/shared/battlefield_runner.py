@@ -1,4 +1,5 @@
 import time
+import os
 import numpy as np
 import torch
 from onpolicy.runner.shared.base_runner import Runner
@@ -81,6 +82,7 @@ class BattleFieldRunner(Runner):
             if episode % self.eval_interval == 0 and self.use_eval:
                 self.eval(total_num_steps)
         
+        print('Training Ended')
         # training finishes, plot reward
         fig, ax = plt.subplots()
         
@@ -89,7 +91,8 @@ class BattleFieldRunner(Runner):
         ax.set_xlabel('episode')
         ax.set_ylabel('reward')
         ax.set_title('Training MAPPO single team for 8x8 grid')
-        plt.savefig(self.save_dir)
+        title = f'training result of mappo'
+        plt.savefig(os.path.join(self.save_dir, title))
 
     # Function to concatenate the values of a dictionary into a single array
     def concatenate_dict_values(self, d):
