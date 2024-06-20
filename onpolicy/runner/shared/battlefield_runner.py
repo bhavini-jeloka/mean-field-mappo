@@ -29,9 +29,7 @@ class BattleFieldRunner(Runner):
                     
                 # Obser reward and next obs
                 actions_env = np.argmax(actions_env, axis=-1)
-                print('about to step')
                 obs, rewards, dones, infos = self.envs.step(actions_env)
-                print('finish step')
 
                 data = obs, rewards, dones, infos, values, actions, action_log_probs, rnn_states, rnn_states_critic
 
@@ -74,7 +72,7 @@ class BattleFieldRunner(Runner):
                 train_infos["average_episode_rewards"] = np.mean(self.buffer.rewards) * self.episode_length
                 print("average episode rewards is {}".format(train_infos["average_episode_rewards"]))
                 self.log_train(train_infos, total_num_steps)
-                self.log_env(env_infos, total_num_steps)
+                #self.log_env(obs, total_num_steps)
 
             # eval
             if episode % self.eval_interval == 0 and self.use_eval:
