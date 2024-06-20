@@ -307,12 +307,10 @@ class BattleField(Env):
         And any internal state used by observe() or render()
         """
 
-        print(jointAction)
         mf = self.mf_oracle.getEmpiricalMeanField(self.local_states_all)
 
         # new state
         for agent, action in zip(self.agents, jointAction):
-            print(agent, action)
             self.local_state[agent] = self.get_new_state(self.local_state[agent], action, agent, self.mf_oracle, size, mf)
 
         self.local_states_arr = np.array([arr for arr in self.local_state.values()])
@@ -327,3 +325,5 @@ class BattleField(Env):
 
         if self.render_mode == "human":
             self._render_frame()
+
+        return self.observations, self.rewards, self.terminations, self.infos
