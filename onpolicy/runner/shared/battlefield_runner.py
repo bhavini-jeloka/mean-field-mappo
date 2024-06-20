@@ -144,6 +144,8 @@ class BattleFieldRunner(Runner):
 
         arr_obs = np.array([np.array(list(d.values())) for d in obs])
         concatenated_obs = np.array([self.concatenate_dict_values(d) for d in obs])
+
+        arr_rewards = np.array([np.array(list(d.values())) for d in rewards])
         
         # replay buffer
         if self.use_centralized_V:
