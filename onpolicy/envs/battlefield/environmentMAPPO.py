@@ -326,4 +326,6 @@ class BattleField(Env):
         if self.render_mode == "human":
             self._render_frame()
 
-        return self.observations, self.rewards, self.terminations, self.infos
+        dones = [False]*self.num_agents
+
+        return self.observations, self.rewards, dones, self.infos
