@@ -154,7 +154,7 @@ class BattleFieldRunner(Runner):
         else:
             share_obs = arr_obs
 
-        self.buffer.insert(share_obs, arr_obs, rnn_states, rnn_states_critic, actions, action_log_probs, values, rewards, masks)
+        self.buffer.insert(share_obs, arr_obs, rnn_states, rnn_states_critic, actions, action_log_probs, values, arr_rewards, masks)
 
     @torch.no_grad()
     def eval(self, total_num_steps):
