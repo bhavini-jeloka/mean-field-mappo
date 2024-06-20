@@ -99,7 +99,7 @@ class BattleFieldRunner(Runner):
             share_obs = arr_obs
 
         self.buffer.share_obs[0] = share_obs.copy()
-        self.buffer.obs[0] = concatenated_obs.copy()
+        self.buffer.obs[0] = arr_obs.copy()
 
     @torch.no_grad()
     def collect(self, step):
