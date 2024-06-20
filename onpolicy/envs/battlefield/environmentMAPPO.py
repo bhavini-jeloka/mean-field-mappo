@@ -327,5 +327,5 @@ class BattleField(Env):
             self._render_frame()
 
         dones = [False]*self.num_agents
-        print('Returning observations')
+
         return self.observations, self.rewards, dones, self.infos

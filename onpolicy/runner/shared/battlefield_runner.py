@@ -31,7 +31,7 @@ class BattleFieldRunner(Runner):
                 actions_env = np.argmax(actions_env, axis=-1)
                 obs, rewards, dones, infos = self.envs.step(actions_env)
                 print(obs)
-                blue_states = np.array([values[-1] for values in obs.values()])
+                blue_states = np.array([values[-1] for values in obs[0].values()])
                 print('blue states', blue_states)
 
                 data = obs, rewards, dones, infos, values, actions, action_log_probs, rnn_states, rnn_states_critic
