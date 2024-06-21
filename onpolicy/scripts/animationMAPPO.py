@@ -20,20 +20,6 @@ def index2status(size, s):
 def index2pos(size, idx):
         return np.array(np.unravel_index(idx.astype(int), (size, size)))
 
-# definitions
-def act(self, obs, rnn_states_actor, masks, available_actions=None, deterministic=False):
-    """
-    Compute actions using the given inputs.
-    :param obs (np.ndarray): local agent inputs to the actor.
-    :param rnn_states_actor: (np.ndarray) if actor is RNN, RNN states for actor.
-    :param masks: (np.ndarray) denotes points at which RNN states should be reset.
-    :param available_actions: (np.ndarray) denotes which actions are available to agent
-                                (if None, all actions available)
-    :param deterministic: (bool) whether the action should be mode of distribution or should be sampled.
-    """
-    actions, _, rnn_states_actor = self.actor(obs, rnn_states_actor, masks, available_actions, deterministic)
-    return actions, rnn_states_actor
-
 def parse_args(args, parser):
     parser.add_argument('--num_agents', type=int,
                         default=20, help="number of players")
