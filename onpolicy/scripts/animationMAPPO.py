@@ -26,6 +26,10 @@ def parse_args(args, parser):
     all_args = parser.parse_known_args(args)[0]
     return all_args
 
+def _t2n(x):
+    """Convert torch tensor to a numpy array."""
+    return x.detach().cpu().numpy()
+
 def main(args):
     parser = get_config()
     all_args = parse_args(args, parser)
@@ -78,20 +82,22 @@ def main(args):
     model_dir = run_dir / 'models'
 
     # seed
-    torch.manual_seed(all_args.seed)
-    torch.cuda.manual_seed_all(all_args.seed)
-    np.random.seed(all_args.seed)
+    #torch.manual_seed(all_args.seed)
+    #torch.cuda.manual_seed_all(all_args.seed)
+    #np.random.seed(all_args.seed)
 
     # env init
     envs = BattleFieldEnv()
     envs.set_seed(all_args.seed)
     obs = envs.reset()
+    eval_envs = BattleFieldEnv() if all_args.use_eval else None
     print('finish making environment')
     num_agents = all_args.num_agents
 
     config = {
         "all_args": all_args,
         "envs": envs,
+        "eval_envs": eval_envs,
         "num_agents": num_agents,
         "device": device,
         "run_dir": run_dir
@@ -106,7 +112,7 @@ def main(args):
     runner = Runner(config)
     runner.restore(model_dir)
 
-    numIter = 15
+    numIter = 50
     size = 8
     target = np.array([[0, 0], [1, 1], [2, 2], [3, 3], [4, 4], [5, 5], [6, 6], [7, 7]])
 
@@ -124,7 +130,9 @@ def main(args):
 
     for t in range(numIter):
         print('Time:', t)
-        print(obs)
+        
+        arr_obs = np.array(list(obs.values())) 
+
         blue_states = np.array([values[-1] for values in obs.values()])
         states_list = np.hstack((blue_states, fixed_red_states))
 
@@ -134,21 +142,29 @@ def main(args):
 
         renderer.render_render_grid()
         renderer.render_agents(pos_list_tuples, status_list, color_list)
-        renderer.mark_cell(target[0])
-        renderer.mark_cell(target[1])
+        for i in range(target.shape[0]):
+            renderer.mark_cell(target[i])
         renderer.show()
         renderer.hold(3)
 
-        action, rnn_states = runner.policy.actor(np.concatenate(obs),
+        print('shape of observation array', arr_obs.shape)
+
+        
+        action, action_log_probs, rnn_states = runner.policy.actor(arr_obs,
                                                 np.concatenate(rnn_states),
                                                 np.concatenate(masks),
                                                 deterministic=True)
-        actions = np.array(np.split(runner._t2n(action), 1))
-        rnn_states = np.array(np.split(runner._t2n(rnn_states), 1))
+        actions = np.array(np.split(_t2n(action), 1))
+        rnn_states = np.array(np.split(_t2n(rnn_states), 1))
 
-        jointAction = np.squeeze(np.eye(envs.action_space[0].n)[actions], 2)
-            
+        jointAction = np.squeeze(np.squeeze(actions))   
+        print('joint action', jointAction)
+       
+
+        #jointAction = np.random.choice(5, num_agents)
         obs, rewards, dones, infos = envs.step(jointAction)
+
+
         renderer.clear()
         envs.close()
 
