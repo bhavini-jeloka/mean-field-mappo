@@ -14,7 +14,7 @@ import copy
 from .mfOracleNew import mfOracle
 
 size = 8
-target = np.array([[2, 2], [6, 6]])
+target = np.array([[0, 0], [1, 1], [2, 2], [3, 3], [4, 4], [5, 5], [6, 6], [7, 7]])
 def BattleFieldEnv(render_mode=None):
 
     internal_render_mode = render_mode if render_mode != "ansi" else "human"
@@ -204,6 +204,9 @@ class BattleField(Env):
 
     def get_state(self, agent):
         return self.local_state[agent]
+    
+    def get_fixed_red(self):
+        return self.fixed_red
 
     def find_border_locations(self):
         n = self.size
