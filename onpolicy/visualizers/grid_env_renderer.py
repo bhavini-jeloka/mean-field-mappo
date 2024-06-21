@@ -3,7 +3,7 @@ import matplotlib.pylab as plt
 import matplotlib.lines as lines
 import matplotlib.patches as patches
 import pickle
-from visualizers.base_renderer import MatplotlibRenderer
+from .base_renderer import MatplotlibRenderer
 import math
 
 
