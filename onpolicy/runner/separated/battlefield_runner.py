@@ -41,6 +41,7 @@ class BattleFieldRunner(Runner):
                 self.insert(data)
 
             # compute return and update network
+            print("COMPUTING")
             self.compute()
             train_infos = self.train()
             
@@ -79,102 +80,101 @@ class BattleFieldRunner(Runner):
             if episode % self.eval_interval == 0 and self.use_eval:
                 self.eval(total_num_steps)
 
+    # Function to concatenate the values of a dictionary into a single array
+    def concatenate_dict_values(self, d):
+        values = np.array(list(d.values()))
+        concatenated_array = np.concatenate(values, axis=None)
+        return concatenated_array
+    
+    def consolidate_dicts(self, list_of_dicts):
+        # Initialize empty dictionaries for each key
+        consolidated_dict = {0: [], 1: []}
+        
+        # Iterate through each dictionary in the list
+        for d in list_of_dicts:
+            # Append values to corresponding lists in consolidated_dict
+            consolidated_dict[0].append(d[0])
+            consolidated_dict[1].append(d[1])
+        
+        return consolidated_dict
+
+
     def warmup(self):
         # reset env
         obs = self.envs.reset()
+        arr_obs = np.array([np.array(list(d.values())) for d in obs])
 
         share_obs = []
-        for o in obs:
-            share_obs.append(list(chain(*o)))
+        for o in range(arr_obs.shape[0]):
+            share_obs.append(arr_obs[o, 0, :-1])
         share_obs = np.array(share_obs)
+        share_obs = np.expand_dims(share_obs, 1).repeat(self.num_agents, axis=1)
 
         for team_id in range(self.num_teams):
             if not self.use_centralized_V:
                 share_obs = np.array(list(obs[:, team_id]))
             self.buffer[team_id].share_obs[0] = share_obs.copy()
-            self.buffer[team_id].obs[0] = np.array(list(obs[:, team_id])).copy()
+            self.buffer[team_id].obs[0] = np.array(list(arr_obs[:, team_id*self.num_agents: (team_id+1)*self.num_agents, :])).copy()
+        
 
     @torch.no_grad()
     def collect(self, step):
-        values = []
-        actions = []
-        temp_actions_env = []
-        action_log_probs = []
-        rnn_states = []
-        rnn_states_critic = []
+
+        values = {}
+        actions = {}
+        actions_env = {}
+        action_log_probs = {}
+        rnn_states = {}
+        rnn_states_critic = {}
+        
 
         for team_id in range(self.num_teams):
             self.trainer[team_id].prep_rollout()
+
             value, action, action_log_prob, rnn_state, rnn_state_critic \
-                = self.trainer[team_id].policy.get_actions(self.buffer[team_id].share_obs[step],
-                                                            self.buffer[team_id].obs[step],
-                                                            self.buffer[team_id].rnn_states[step],
-                                                            self.buffer[team_id].rnn_states_critic[step],
-                                                            self.buffer[team_id].masks[step])
+                = self.trainer[team_id].policy.get_actions(np.concatenate(self.buffer[team_id].share_obs[step]),
+                            np.concatenate(self.buffer[team_id].obs[step]),
+                            np.concatenate(self.buffer[team_id].rnn_states[step]),
+                            np.concatenate(self.buffer[team_id].rnn_states_critic[step]),
+                            np.concatenate(self.buffer[team_id].masks[step]))
             # [agents, envs, dim]
-            values.append(_t2n(value))
-            action = _t2n(action)
-            # rearrange action
-            if self.envs.action_space[team_id].__class__.__name__ == 'MultiDiscrete':
-                for i in range(self.envs.action_space[team_id].shape):
-                    uc_action_env = np.eye(self.envs.action_space[team_id].high[i]+1)[action[:, i]]
-                    if i == 0:
-                        action_env = uc_action_env
-                    else:
-                        action_env = np.concatenate((action_env, uc_action_env), axis=1)
-            elif self.envs.action_space[team_id].__class__.__name__ == 'Discrete':
-                action_env = np.squeeze(np.eye(self.envs.action_space[team_id].n)[action], 1)
-            else:
-                raise NotImplementedError
+            values[team_id] = np.array(np.split(_t2n(value), self.n_rollout_threads))
+            actions[team_id] = np.array(np.split(_t2n(action), self.n_rollout_threads))
+            action_log_probs[team_id] = np.array(np.split(_t2n(action_log_prob), self.n_rollout_threads))
+            rnn_states[team_id] = np.array(np.split(_t2n(rnn_state), self.n_rollout_threads))
+            rnn_states_critic[team_id] = np.array(np.split(_t2n(rnn_state_critic), self.n_rollout_threads))
 
-            actions.append(action)
-            temp_actions_env.append(action_env)
-            action_log_probs.append(_t2n(action_log_prob))
-            rnn_states.append(_t2n(rnn_state))
-            rnn_states_critic.append( _t2n(rnn_state_critic))
-
-        # [envs, agents, dim]
-        actions_env = []
-        for i in range(self.n_rollout_threads):
-            one_hot_action_env = []
-            for temp_action_env in temp_actions_env:
-                one_hot_action_env.append(temp_action_env[i])
-            actions_env.append(one_hot_action_env)
-
-        values = np.array(values).transpose(1, 0, 2)
-        actions = np.array(actions).transpose(1, 0, 2)
-        action_log_probs = np.array(action_log_probs).transpose(1, 0, 2)
-        rnn_states = np.array(rnn_states).transpose(1, 0, 2, 3)
-        rnn_states_critic = np.array(rnn_states_critic).transpose(1, 0, 2, 3)
+        arr_actions = [array.squeeze(axis=-1) for array in actions.values()]
+        actions_env = np.concatenate(arr_actions, axis=1)
 
         return values, actions, action_log_probs, rnn_states, rnn_states_critic, actions_env
 
     def insert(self, data):
         obs, rewards, dones, infos, values, actions, action_log_probs, rnn_states, rnn_states_critic = data
 
-        rnn_states[dones == True] = np.zeros(((dones == True).sum(), self.recurrent_N, self.hidden_size), dtype=np.float32)
-        rnn_states_critic[dones == True] = np.zeros(((dones == True).sum(), self.recurrent_N, self.hidden_size), dtype=np.float32)
-        masks = np.ones((self.n_rollout_threads, self.num_teams, 1), dtype=np.float32)
-        masks[dones == True] = np.zeros(((dones == True).sum(), 1), dtype=np.float32)
-
-        share_obs = []
-        for o in obs:
-            share_obs.append(list(chain(*o)))
-        share_obs = np.array(share_obs)
+        dones = self.consolidate_dicts(dones)
 
         for team_id in range(self.num_teams):
-            if not self.use_centralized_V:
-                share_obs = np.array(list(obs[:, team_id]))
+            mask = dones[team_id]
+            num_true = np.sum(mask)
 
-            self.buffer[team_id].insert(share_obs,
-                                        np.array(list(obs[:, team_id])),
-                                        rnn_states[:, team_id],
-                                        rnn_states_critic[:, team_id],
-                                        actions[:, team_id],
-                                        action_log_probs[:, team_id],
-                                        values[:, team_id],
-                                        rewards[:, team_id],
-                                        masks[:, team_id])
+            rnn_states[team_id][mask] = np.zeros((num_true, self.recurrent_N, self.hidden_size), dtype=np.float32)
+            rnn_states_critic[team_id][mask] = np.zeros((num_true, *self.buffer[team_id].rnn_states_critic.shape[3:]), dtype=np.float32)
+            masks = np.ones((self.n_rollout_threads, self.num_agents, 1), dtype=np.float32)
+            masks[mask] = np.zeros((num_true, 1), dtype=np.float32)
+
+            arr_obs = np.array([np.array(list(d.values())) for d in obs])
+            share_obs = []
+            for o in range(arr_obs.shape[0]):
+                share_obs.append(arr_obs[o, 0, :-1])
+            share_obs = np.array(share_obs)
+            share_obs = np.expand_dims(share_obs, 1).repeat(self.num_agents, axis=1)
+            
+
+            arr_rewards = np.array([np.array(list(d.values()))[team_id*self.num_agents: (team_id+1)*self.num_agents] for d in rewards])
+            arr_rewards = np.expand_dims(arr_rewards, axis=-1)
+
+            self.buffer[team_id].insert(share_obs, np.array(list(arr_obs[:, team_id*self.num_agents: (team_id+1)*self.num_agents, :])), rnn_states[team_id], rnn_states_critic[team_id], actions[team_id], action_log_probs[team_id], values[team_id], arr_rewards, masks)
 
     @torch.no_grad()
     def eval(self, total_num_steps):

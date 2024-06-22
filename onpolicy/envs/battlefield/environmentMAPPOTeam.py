@@ -115,15 +115,14 @@ class BattleField(Env):
         self.team_mapping = {'blue': 0, 'red': 1}
 
         for team_id in range(self.num_teams):
-            share_obs_dim = 0
             for agent in range(self.numAgents):
                 self.action_space[team_id].append(Discrete(5))
                 
                 # observation space
                 obs_dim = 2*2*size**2
-                share_obs_dim += obs_dim + 1
+                share_obs_dim += 1
                 self.observation_space[team_id].append(spaces.Box(0, obs_dim - 1, shape=(obs_dim + 1,), dtype=np.float32))  # [-inf,inf]
-            
+            share_obs_dim = obs_dim
             self.share_observation_space[team_id] = [spaces.Box(
                 low=-np.inf, high=+np.inf, shape=(share_obs_dim,), dtype=np.float32) for _ in range(self.numAgents)]
 
@@ -259,7 +258,7 @@ class BattleField(Env):
             self.seed_value = 1
         else:
             self.seed_value = seed
-            
+
 
     def reset(self, seed=None, options=None):
         """
@@ -354,7 +353,9 @@ class BattleField(Env):
 
         pos_list, status_list = self.mf_oracle.index2status(self.local_states_all)
 
-        dones = np.logical_not(status_list.astype(bool))
+        dones = {}
+        dones[0] = np.logical_not(status_list[:self.numAgents].astype(bool))
+        dones[1] = np.logical_not(status_list[:self.numAgents].astype(bool))
 
         if self.render_mode == "human":
             self._render_frame()
