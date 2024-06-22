@@ -9,6 +9,7 @@ import torch
 from onpolicy.utils.util import update_linear_schedule
 from onpolicy.runner.separated.team_base_runner import Runner
 import imageio
+import matplotlib.pyplot as plt
 
 def _t2n(x):
     return x.detach().cpu().numpy()
@@ -22,6 +23,7 @@ class BattleFieldRunner(Runner):
 
         start = time.time()
         episodes = int(self.num_env_steps) // self.episode_length // self.n_rollout_threads
+        avg_reward_to_plot = {0: [], 1:[]}
 
         for episode in range(episodes):
             if self.use_linear_lr_decay:
@@ -41,7 +43,6 @@ class BattleFieldRunner(Runner):
                 self.insert(data)
 
             # compute return and update network
-            print("COMPUTING")
             self.compute()
             train_infos = self.train()
             
@@ -55,9 +56,8 @@ class BattleFieldRunner(Runner):
             # log information
             if episode % self.log_interval == 0:
                 end = time.time()
-                print("\n Scenario {} Algo {} Exp {} updates {}/{} episodes, total num timesteps {}/{}, FPS {}.\n"
-                        .format(self.all_args.scenario_name,
-                                self.algorithm_name,
+                print("\n Algo {} Exp {} updates {}/{} episodes, total num timesteps {}/{}, FPS {}.\n"
+                        .format(self.algorithm_name,
                                 self.experiment_name,
                                 episode,
                                 episodes,
@@ -74,11 +74,26 @@ class BattleFieldRunner(Runner):
                                     idv_rews.append(infos[count][team_id].get('individual_reward', 0))
                         train_infos[team_id].update({'individual_rewards': np.mean(idv_rews)})
                         train_infos[team_id].update({"average_episode_rewards": np.mean(self.buffer[team_id].rewards) * self.episode_length})
+                        avg_reward_to_plot[team_id].append(np.mean(self.buffer[team_id].rewards))
                 self.log_train(train_infos, total_num_steps)
 
             # eval
             if episode % self.eval_interval == 0 and self.use_eval:
                 self.eval(total_num_steps)
+            
+        print('Training Ended')
+        # training finishes, plot reward
+        fig, ax = plt.subplots()
+        
+        ax.plot(self.log_interval*np.arange(len(avg_reward_to_plot[0])),avg_reward_to_plot, c='blue', label='Blue')
+        ax.plot(self.log_interval*np.arange(len(avg_reward_to_plot[1])),avg_reward_to_plot, c='red', label='Red')
+        ax.legend()
+        ax.set_xlabel('episode')
+        ax.set_ylabel('reward')
+        ax.set_title('Training MAPPO for 8x8 grid')
+        title = f'training result of mappo'
+        plt.savefig(os.path.join(self.save_dir, title))
+
 
     # Function to concatenate the values of a dictionary into a single array
     def concatenate_dict_values(self, d):

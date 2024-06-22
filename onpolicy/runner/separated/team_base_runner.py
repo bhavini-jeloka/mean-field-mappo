@@ -128,60 +128,20 @@ class Runner(object):
     def compute(self):
         for team_id in range(self.num_teams):
             self.trainer[team_id].prep_rollout()
-            next_value = self.trainer[team_id].policy.get_values(self.buffer[team_id].share_obs[-1], 
-                                                                self.buffer[team_id].rnn_states_critic[-1],
-                                                                self.buffer[team_id].masks[-1])
-            next_value = _t2n(next_value)
+            next_value = self.trainer[team_id].policy.get_values(np.concatenate(self.buffer[team_id].share_obs[-1]), 
+                                                                np.concatenate(self.buffer[team_id].rnn_states_critic[-1]),
+                                                                np.concatenate(self.buffer[team_id].masks[-1]))
+
+            next_value = np.array(np.split(_t2n(next_value), self.n_rollout_threads))
             self.buffer[team_id].compute_returns(next_value, self.trainer[team_id].value_normalizer)
 
     def train(self):
-        train_infos = []
-        # random update order
-
-        action_dim=self.buffer[0].actions.shape[-1]
-        factor = np.ones((self.episode_length, self.n_rollout_threads, 1), dtype=np.float32)
+        train_infos = {}
 
         for team_id in torch.randperm(self.num_teams):
             self.trainer[team_id].prep_training()
-            self.buffer[team_id].update_factor(factor)
-            available_actions = None if self.buffer[team_id].available_actions is None \
-                else self.buffer[team_id].available_actions[:-1].reshape(-1, *self.buffer[team_id].available_actions.shape[2:])
-            
-            if self.all_args.algorithm_name == "hatrpo":
-                old_actions_logprob, _, _, _, _ =self.trainer[team_id].policy.actor.evaluate_actions(self.buffer[team_id].obs[:-1].reshape(-1, *self.buffer[team_id].obs.shape[2:]),
-                                                            self.buffer[team_id].rnn_states[0:1].reshape(-1, *self.buffer[team_id].rnn_states.shape[2:]),
-                                                            self.buffer[team_id].actions.reshape(-1, *self.buffer[team_id].actions.shape[2:]),
-                                                            self.buffer[team_id].masks[:-1].reshape(-1, *self.buffer[team_id].masks.shape[2:]),
-                                                            available_actions,
-                                                            self.buffer[team_id].active_masks[:-1].reshape(-1, *self.buffer[team_id].active_masks.shape[2:]))
-            else:
-                old_actions_logprob, _ =self.trainer[team_id].policy.actor.evaluate_actions(self.buffer[team_id].obs[:-1].reshape(-1, *self.buffer[team_id].obs.shape[2:]),
-                                                            self.buffer[team_id].rnn_states[0:1].reshape(-1, *self.buffer[team_id].rnn_states.shape[2:]),
-                                                            self.buffer[team_id].actions.reshape(-1, *self.buffer[team_id].actions.shape[2:]),
-                                                            self.buffer[team_id].masks[:-1].reshape(-1, *self.buffer[team_id].masks.shape[2:]),
-                                                            available_actions,
-                                                            self.buffer[team_id].active_masks[:-1].reshape(-1, *self.buffer[team_id].active_masks.shape[2:]))
-            train_info = self.trainer[team_id].train(self.buffer[team_id])
-
-            if self.all_args.algorithm_name == "hatrpo":
-                new_actions_logprob, _, _, _, _ =self.trainer[team_id].policy.actor.evaluate_actions(self.buffer[team_id].obs[:-1].reshape(-1, *self.buffer[team_id].obs.shape[2:]),
-                                                            self.buffer[team_id].rnn_states[0:1].reshape(-1, *self.buffer[team_id].rnn_states.shape[2:]),
-                                                            self.buffer[team_id].actions.reshape(-1, *self.buffer[team_id].actions.shape[2:]),
-                                                            self.buffer[team_id].masks[:-1].reshape(-1, *self.buffer[team_id].masks.shape[2:]),
-                                                            available_actions,
-                                                            self.buffer[team_id].active_masks[:-1].reshape(-1, *self.buffer[team_id].active_masks.shape[2:]))
-            else:
-                new_actions_logprob, _ =self.trainer[team_id].policy.actor.evaluate_actions(self.buffer[team_id].obs[:-1].reshape(-1, *self.buffer[team_id].obs.shape[2:]),
-                                                            self.buffer[team_id].rnn_states[0:1].reshape(-1, *self.buffer[team_id].rnn_states.shape[2:]),
-                                                            self.buffer[team_id].actions.reshape(-1, *self.buffer[team_id].actions.shape[2:]),
-                                                            self.buffer[team_id].masks[:-1].reshape(-1, *self.buffer[team_id].masks.shape[2:]),
-                                                            available_actions,
-                                                            self.buffer[team_id].active_masks[:-1].reshape(-1, *self.buffer[team_id].active_masks.shape[2:]))
-
-            factor = factor*_t2n(torch.prod(torch.exp(new_actions_logprob-old_actions_logprob),dim=-1).reshape(self.episode_length,self.n_rollout_threads,1))
-            train_infos.append(train_info)      
+            train_infos[team_id] = self.trainer[team_id].train(self.buffer[team_id])      
             self.buffer[team_id].after_update()
-
         return train_infos
 
     def save(self):
@@ -205,13 +165,12 @@ class Runner(object):
                 self.trainer[team_id].value_normalizer.load_state_dict(policy_vnrom_state_dict)
 
     def log_train(self, train_infos, total_num_steps): 
-        for team_id in range(self.num_teams):
-            for k, v in train_infos[team_id].items():
-                agent_k = "agent%i/" % team_id + k
+        for team_id, infos in train_infos.items():
+            for k, v in infos.items():
                 if self.use_wandb:
-                    wandb.log({agent_k: v}, step=total_num_steps)
+                    wandb.log({k: v}, step=total_num_steps)
                 else:
-                    self.writter.add_scalars(agent_k, {agent_k: v}, total_num_steps)
+                    self.writter.add_scalars(k, {k: v}, total_num_steps)
 
     def log_env(self, env_infos, total_num_steps):
         for k, v in env_infos.items():

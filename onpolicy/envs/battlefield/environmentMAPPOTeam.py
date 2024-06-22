@@ -275,7 +275,7 @@ class BattleField(Env):
         Here it sets up the state dictionary which is used by step() and the observations dictionary which is used by step() and observe()
         """
 
-        random.seed(self.seed_value)
+        #random.seed(self.seed_value)
 
         self.agents_blue = self.possible_agents_blue[:]
         self.agents_red = self.possible_agents_red[:]
@@ -319,7 +319,7 @@ class BattleField(Env):
         return dirIdx
 
 
-# TODO: fix observations
+
     def step(self, jointAction):
         """
         step(action) takes in an action for the current agent (specified by
