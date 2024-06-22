@@ -224,7 +224,7 @@ class mfOracle:
 
     def ask_oracle_reward(self, nu_t: np.ndarray, mu_t: np.ndarray):
         reward_vec = (nu_t[np.array(self.target_indices) + self.n_red_states//2]) * self.rho 
-        reward = np.sum(reward_vec) - np.sum(nu_t[:self.n_red_states//2])*(1 - self.rho)
+        reward = np.sum(reward_vec) - 10*np.sum(nu_t[:self.n_red_states//2])*(1 - self.rho)
         return {'blue': -reward, 'red': reward}
 
 

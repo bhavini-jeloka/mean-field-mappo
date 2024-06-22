@@ -2,7 +2,7 @@ import functools
 
 import gymnasium
 import numpy as np
-from gymnasium import spaces
+from gymnasium import spaces, Env
 from gymnasium.spaces import Tuple, Box, Discrete, MultiDiscrete
 
 from pettingzoo import AECEnv
@@ -14,14 +14,14 @@ import copy
 from .mfOracle import mfOracle
 
 size = 8
-target = np.array([[2, 2], [6, 6]])
-def env(render_mode=None):
+target = np.array([[0, 0], [1, 1], [2, 2], [3, 3], [4, 4], [5, 5], [6, 6], [7, 7]])
+def BattleFieldEnv(render_mode=None):
 
     internal_render_mode = render_mode if render_mode != "ansi" else "human"
-    env = raw_env(render_mode=internal_render_mode)
+    env = BattleField(render_mode=internal_render_mode)
 
     # this wrapper helps error handling for discrete action spaces
-    env = wrappers.AssertOutOfBoundsWrapper(env)
+    #env = wrappers.AssertOutOfBoundsWrapper(env)
 
     # Provides a wide vareity of helpful user errors
     # Strongly recommended
@@ -30,7 +30,7 @@ def env(render_mode=None):
     return env
 
 
-class raw_env(AECEnv):
+class BattleField(Env):
     """
     The metadata holds environment constants. From gymnasium, we inherit the "render_modes",
     metadata which specifies which modes can be put into the render() method.
@@ -55,7 +55,8 @@ class raw_env(AECEnv):
         self.window_size = 512  # The size of the PyGame window
         self.numAgents = 20 #8
         self.numActions = 5
-        self.target = np.array([[2, 2], [6, 6]])
+        self.num_teams = 2
+        self.target = np.array([[0, 0], [1, 1], [2, 2], [3, 3], [4, 4], [5, 5], [6, 6], [7, 7]])
 
         self.possible_agents_blue = ["blue1", "blue2", "blue3", "blue4", "blue5", "blue6", "blue7", "blue8", "blue9", "blue10", 
                                      "blue11", "blue12", "blue13", "blue14", "blue15", "blue16", "blue17", "blue18", "blue19", "blue20"]
@@ -105,18 +106,26 @@ class raw_env(AECEnv):
                                   self.numAgents, self.target)
         self.border_indices = self.find_border_locations()
 
-    
-    # lru_cache allows observation and action spaces to be memoized, reducing clock cycles required to get each agent's space.
-    @functools.lru_cache(maxsize=None)
-    def observation_space(self, agent):
-        # Observation space should be defined here:
-        size = self.size
-        return spaces.Box(0, 2*size**2 - 1, shape=(2*(2*size**2) + 1,), dtype=int).shape[0]  # obsevation space: mean fields of both the teams and the local (p, s)
+        # configure spaces
+        self.action_space = {0: [], 1: []}
+        self.observation_space = {0: [], 1: []}
+        self.share_observation_space = {0: [], 1: []}
+        share_obs_dim = 0
 
-    @functools.lru_cache(maxsize=None)
-    def action_space(self, agent):
-        # Action space should be defined here.
-        return Discrete(5)
+        self.team_mapping = {'blue': 0, 'red': 1}
+
+        for team_id in range(self.num_teams):
+            share_obs_dim = 0
+            for agent in self.numAgents:
+                self.action_space[team_id].append(Discrete(5))
+                
+                # observation space
+                obs_dim = 2*2*size**2
+                share_obs_dim += obs_dim + 1
+                self.observation_space[team_id].append(spaces.Box(0, obs_dim - 1, shape=(obs_dim + 1,), dtype=np.float32))  # [-inf,inf]
+            
+            self.share_observation_space[team_id] = [spaces.Box(
+                low=-np.inf, high=+np.inf, shape=(share_obs_dim,), dtype=np.float32) for _ in range(self.numAgents)]
 
     def render(self):
         # Renders the environment. In human mode, it opens up a graphical window that a human can see and understand.
@@ -284,6 +293,8 @@ class raw_env(AECEnv):
         self._agent_selector = agent_selector(self.agents)
         self.agent_selection = self._agent_selector.next()
 
+        return self.observations
+
 
     def get_new_state(self, state, action, agent, oracle, size, mf):
 
@@ -331,5 +342,11 @@ class raw_env(AECEnv):
         self.rewards_red = {agent: reward['red'] for agent in self.agents_red}
         self.rewards = self.rewards_blue | self.rewards_red
 
+        pos_list, status_list = self.mf_oracle.index2status(self.local_states_all)
+
+        dones = np.logical_not(status_list.astype(bool))
+
         if self.render_mode == "human":
             self._render_frame()
+
+        return self.observations, self.rewards, dones, self.infos
