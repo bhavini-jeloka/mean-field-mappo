@@ -116,7 +116,7 @@ class BattleField(Env):
 
         for team_id in range(self.num_teams):
             share_obs_dim = 0
-            for agent in self.numAgents:
+            for agent in range(self.numAgents):
                 self.action_space[team_id].append(Discrete(5))
                 
                 # observation space
@@ -252,6 +252,14 @@ class BattleField(Env):
             border_indices.append(self.mf_oracle.pos2index(border) + self.size ** 2) 
 
         return border_indices
+    
+    
+    def set_seed(self, seed=None):
+        if seed is None:
+            self.seed_value = 1
+        else:
+            self.seed_value = seed
+            
 
     def reset(self, seed=None, options=None):
         """
@@ -267,6 +275,8 @@ class BattleField(Env):
         can be called without issues.
         Here it sets up the state dictionary which is used by step() and the observations dictionary which is used by step() and observe()
         """
+
+        random.seed(self.seed_value)
 
         self.agents_blue = self.possible_agents_blue[:]
         self.agents_red = self.possible_agents_red[:]
