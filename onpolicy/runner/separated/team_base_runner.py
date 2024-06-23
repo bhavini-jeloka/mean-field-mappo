@@ -138,7 +138,7 @@ class Runner(object):
     def train(self):
         train_infos = {}
 
-        for team_id in torch.randperm(self.num_teams):
+        for team_id in range(self.num_teams):
             self.trainer[team_id].prep_training()
             train_infos[team_id] = self.trainer[team_id].train(self.buffer[team_id])      
             self.buffer[team_id].after_update()

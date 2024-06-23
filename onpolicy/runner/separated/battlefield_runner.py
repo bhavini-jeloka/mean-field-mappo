@@ -74,7 +74,15 @@ class BattleFieldRunner(Runner):
                                     idv_rews.append(infos[count][team_id].get('individual_reward', 0))
                         train_infos[team_id].update({'individual_rewards': np.mean(idv_rews)})
                         train_infos[team_id].update({"average_episode_rewards": np.mean(self.buffer[team_id].rewards) * self.episode_length})
-                        avg_reward_to_plot[team_id].append(np.mean(self.buffer[team_id].rewards))
+
+
+                for team_id in range(self.num_teams):
+                    train_infos[team_id].update({"average_episode_rewards": np.mean(self.buffer[team_id].rewards) * self.episode_length})
+                    avg_reward_to_plot[team_id].append(train_infos[team_id]["average_episode_rewards"])
+
+                print("Blue average: {}".format(train_infos[0]["average_episode_rewards"]))
+                print("Red average: {}".format(train_infos[1]["average_episode_rewards"]))
+                        
                 self.log_train(train_infos, total_num_steps)
 
             # eval
