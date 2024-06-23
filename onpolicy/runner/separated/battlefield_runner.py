@@ -85,8 +85,8 @@ class BattleFieldRunner(Runner):
         # training finishes, plot reward
         fig, ax = plt.subplots()
         
-        ax.plot(self.log_interval*np.arange(len(avg_reward_to_plot[0])),avg_reward_to_plot, c='blue', label='Blue')
-        ax.plot(self.log_interval*np.arange(len(avg_reward_to_plot[1])),avg_reward_to_plot, c='red', label='Red')
+        ax.plot(self.log_interval*np.arange(len(avg_reward_to_plot[0])),avg_reward_to_plot[0], c='blue', label='Blue')
+        ax.plot(self.log_interval*np.arange(len(avg_reward_to_plot[1])),avg_reward_to_plot[1], c='red', label='Red')
         ax.legend()
         ax.set_xlabel('episode')
         ax.set_ylabel('reward')
