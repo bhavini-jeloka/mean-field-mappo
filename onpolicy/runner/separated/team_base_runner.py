@@ -154,14 +154,14 @@ class Runner(object):
                 policy_vnrom = self.trainer[team_id].value_normalizer
                 torch.save(policy_vnrom.state_dict(), str(self.save_dir) + "/vnrom_agent" + str(team_id) + ".pt")
 
-    def restore(self):
+    def restore(self, model_dir):
         for team_id in range(self.num_teams):
-            policy_actor_state_dict = torch.load(str(self.model_dir) + '/actor_agent' + str(team_id) + '.pt')
+            policy_actor_state_dict = torch.load(str(model_dir) + '/actor_agent' + str(team_id) + '.pt')
             self.policy[team_id].actor.load_state_dict(policy_actor_state_dict)
-            policy_critic_state_dict = torch.load(str(self.model_dir) + '/critic_agent' + str(team_id) + '.pt')
+            policy_critic_state_dict = torch.load(str(model_dir) + '/critic_agent' + str(team_id) + '.pt')
             self.policy[team_id].critic.load_state_dict(policy_critic_state_dict)
             if self.trainer[team_id]._use_valuenorm:
-                policy_vnrom_state_dict = torch.load(str(self.model_dir) + '/vnrom_agent' + str(team_id) + '.pt')
+                policy_vnrom_state_dict = torch.load(str(model_dir) + '/vnrom_agent' + str(team_id) + '.pt')
                 self.trainer[team_id].value_normalizer.load_state_dict(policy_vnrom_state_dict)
 
     def log_train(self, train_infos, total_num_steps): 
