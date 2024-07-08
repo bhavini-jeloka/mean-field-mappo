@@ -24,7 +24,7 @@ class mfOracle:
 
         self.grid = np.arange(self.size*self.size).reshape(self.size, self.size)
 
-        self.alpha_x, self.alpha_y = 20, 20
+        self.alpha_x, self.alpha_y = 20, 5
         self.beta_x, self.beta_y = 0, 0
 
         self.target_indices = []
@@ -218,14 +218,13 @@ class mfOracle:
 
         mean_field_blue = (1 / self.n_blue_agents) * mean_field_blue
         mean_field_red = (1 / self.n_red_agents) * mean_field_red
-    
-        mean_field_obs = np.hstack((mean_field_blue, mean_field_red))
-        return {'blue': mean_field_obs, 'red': mean_field_obs}
+
+        return {'blue': mean_field_blue, 'red': mean_field_red}
 
     def ask_oracle_reward(self, nu_t: np.ndarray, mu_t: np.ndarray):
-        reward_vec = (nu_t[np.array(self.target_indices) + self.n_red_states//2]) * self.rho 
-        reward = np.sum(reward_vec) - 10*np.sum(nu_t[:self.n_red_states//2])*(1 - self.rho)
-        return {'blue': -reward, 'red': reward}
+        reward_vec = (mu_t[np.array(self.target_indices) + self.n_blue_states//2]) * (1-self.rho)
+        reward = np.sum(reward_vec) - 10*np.sum(mu_t[:self.n_blue_states//2])*(self.rho)
+        return reward
 
 
 if __name__ == "__main__":
